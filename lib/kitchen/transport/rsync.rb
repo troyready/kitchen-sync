@@ -52,6 +52,14 @@ module Kitchen
           rsync_candidates = locals.select {|path| File.directory?(path) && File.basename(path) != 'cache' }
           ssh_command = "ssh #{ssh_args.join(' ')}"
           copy_identity
+
+          # If install_rsync is specified, ensure rsync is installed by running
+          # that command
+          if $kitchen_rsync_opts && $kitchen_rsync_opts[:install_rsync]
+            logger.debug("[rsync] Installing rsync with command: #{$kitchen_rsync_opts[:install_rsync]}")
+            @session.exec! $kitchen_rsync_opts[:install_rsync]
+          end
+
           rsync_cmd = "/usr/bin/rsync -e '#{ssh_command}' -az#{logger.level == :debug ? 'vv' : ''} --delete "
           if $kitchen_rsync_opts && $kitchen_rsync_opts[:excludes]
             rsync_cmd << $kitchen_rsync_opts[:excludes].map { |e| "--exclude '#{e}'" }.join(' ')
